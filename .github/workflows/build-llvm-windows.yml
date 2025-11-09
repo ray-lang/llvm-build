@@ -32,8 +32,8 @@ jobs:
           llvm-version: 17.0.6
           install-prefix: C:\llvm-x64
           asset-name: windows-x64-llvm-17.0.6.zip
-          release-tag: windows-x64-llvm-17.0.6
-          release-name: windows-x64-llvm-17.0.6
+          release-tag: windows-llvm-17.0.6
+          release-name: Windows LLVM 17.0.6
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   windows-arm64:
     runs-on: windows-11-arm
@@ -60,6 +60,6 @@ jobs:
           llvm-version: 17.0.6
           install-prefix: C:\llvm-arm64
           asset-name: windows-arm64-llvm-17.0.6.zip
-          release-tag: windows-arm64-llvm-17.0.6
-          release-name: windows-arm64-llvm-17.0.6
+          release-tag: windows-llvm-17.0.6
+          release-name: Windows LLVM 17.0.6
           repo-token: ${{ secrets.GITHUB_TOKEN }}
