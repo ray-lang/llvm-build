@@ -57,6 +57,7 @@ runs:
         fi
 
         PREFIX="${{ inputs.install-prefix }}"
+        PREFIX="${PREFIX/#\~/$HOME}"
         if [ -z "$PREFIX" ]; then
           PREFIX="${HOME}/llvm-${{ inputs.arch }}"
         fi
