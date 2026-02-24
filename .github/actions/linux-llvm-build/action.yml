@@ -1,0 +1,108 @@
+name: linux-llvm-build
+description: Build, package, and upload a Linux LLVM bundle.
+inputs:
+  llvm-version:
+    description: LLVM release version to build (e.g. 21.1.8)
+    required: false
+    default: "21.1.8"
+  arch:
+    description: Architecture label (e.g. x86_64 or arm64).
+    required: false
+    default: x86_64
+  install-prefix:
+    description: Directory where LLVM should be installed (defaults to /opt/llvm-<arch>).
+    required: false
+    default: ""
+  asset-name:
+    description: Release asset name (e.g. linux-x86_64-llvm-21.1.8.zip).
+    required: true
+  release-tag:
+    description: Tag to use or overwrite on the release.
+    required: true
+  release-name:
+    description: Release title.
+    required: true
+  repo-token:
+    description: GitHub token used for uploading release assets.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install build dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build build-essential python3 zip
+
+    - name: Build and install LLVM
+      id: build
+      shell: bash
+      run: |
+        LLVM_VERSION="${{ inputs.llvm-version }}"
+        SOURCE_DIR="llvm-project-${LLVM_VERSION}.src"
+        ARCHIVE="${SOURCE_DIR}.tar.xz"
+        if [ ! -d "$SOURCE_DIR" ]; then
+          URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/${ARCHIVE}"
+          echo "Downloading LLVM ${LLVM_VERSION} from ${URL}"
+          curl -L -o "${ARCHIVE}" "${URL}"
+          tar -xf "${ARCHIVE}"
+          if [ ! -d "$SOURCE_DIR" ]; then
+            EXTRACTED=$(find . -maxdepth 1 -type d -name 'llvm-project-*' | head -1)
+            if [ -n "$EXTRACTED" ]; then
+              mv "$EXTRACTED" "$SOURCE_DIR"
+            else
+              echo "Unable to locate extracted LLVM sources." >&2
+              exit 1
+            fi
+          fi
+        fi
+
+        PREFIX="${{ inputs.install-prefix }}"
+        if [ -z "$PREFIX" ]; then
+          PREFIX="/opt/llvm-${{ inputs.arch }}"
+        fi
+
+        rm -rf build
+
+        cmake -S "${SOURCE_DIR}/llvm" \
+          -B build \
+          -G "Ninja" \
+          -DLLVM_ENABLE_PROJECTS="lld" \
+          -DLLVM_INCLUDE_TESTS=OFF \
+          -DLLVM_INCLUDE_EXAMPLES=OFF \
+          -DLLVM_INCLUDE_BENCHMARKS=OFF \
+          -DLLVM_BUILD_TOOLS=ON \
+          -DLLVM_TARGETS_TO_BUILD=all \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DCMAKE_INSTALL_PREFIX="${PREFIX}"
+
+        cmake --build build --config Release
+        sudo cmake --install build --config Release --prefix "${PREFIX}"
+
+        echo "install-prefix=${PREFIX}" >> "$GITHUB_OUTPUT"
+
+    - name: Package LLVM archive
+      id: package
+      shell: bash
+      run: |
+        PREFIX="${{ steps.build.outputs.install-prefix }}"
+        if [ -z "$PREFIX" ]; then
+          echo "Missing install prefix from build step." >&2
+          exit 1
+        fi
+        ZIP_PATH="${PREFIX}.zip"
+        cd "${PREFIX}"
+        zip -r "${ZIP_PATH}" .
+        echo "zip-path=${ZIP_PATH}" >> "$GITHUB_OUTPUT"
+
+    - name: Upload LLVM release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ inputs.repo-token }}
+        file: ${{ steps.package.outputs.zip-path }}
+        asset_name: ${{ inputs.asset-name }}
+        tag: ${{ inputs.release-tag }}
+        release_name: ${{ inputs.release-name }}
+        prerelease: false
+        overwrite: true

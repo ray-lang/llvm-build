@@ -1,11 +1,11 @@
-name: Build Windows LLVM
+name: Build macOS LLVM
 
 on:
   workflow_dispatch:
 
 jobs:
-  windows-x64:
-    runs-on: windows-2025
+  macos-arm64:
+    runs-on: macos-15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -13,50 +13,50 @@ jobs:
         id: cache-llvm
         uses: actions/cache@v4
         with:
-          path: C:\llvm-x64
-          key: windows-llvm21-x64
+          path: ~/llvm-arm64
+          key: macos-llvm21-arm64
       - name: Cache LLVM source
         id: cache-llvm-src
         uses: actions/cache@v4
         with:
           path: llvm-project-21.1.8.src
-          key: windows-llvm-src-21.1.8
+          key: macos-llvm-src-21.1.8
       - name: Build and publish LLVM bundle
         if: steps.cache-llvm.outputs.cache-hit != 'true'
-        uses: ./.github/actions/windows-llvm-build
+        uses: ./.github/actions/macos-llvm-build
         with:
-          msvc-arch: x64
+          arch: arm64
           llvm-version: 21.1.8
-          install-prefix: C:\llvm-x64
-          asset-name: windows-x64-llvm-21.1.8.zip
+          install-prefix: ~/llvm-arm64
+          asset-name: macos-arm64-llvm-21.1.8.zip
           release-tag: llvm-21.1.8
           release-name: LLVM 21.1.8
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-  windows-arm64:
-    runs-on: windows-11-arm
+  macos-x86_64:
+    runs-on: macos-15-intel
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Cache LLVM build
-        id: cache-llvm-arm64
+        id: cache-llvm-x86
         uses: actions/cache@v4
         with:
-          path: C:\llvm-arm64
-          key: windows-llvm21-arm64
+          path: ~/llvm-x86_64
+          key: macos-llvm21-x86_64
       - name: Cache LLVM source
-        id: cache-llvm-src-arm64
+        id: cache-llvm-src-x86
         uses: actions/cache@v4
         with:
           path: llvm-project-21.1.8.src
-          key: windows-llvm-src-21.1.8
+          key: macos-llvm-src-21.1.8
       - name: Build and publish LLVM bundle
-        if: steps.cache-llvm-arm64.outputs.cache-hit != 'true'
-        uses: ./.github/actions/windows-llvm-build
+        if: steps.cache-llvm-x86.outputs.cache-hit != 'true'
+        uses: ./.github/actions/macos-llvm-build
         with:
-          msvc-arch: arm64
+          arch: x86_64
           llvm-version: 21.1.8
-          install-prefix: C:\llvm-arm64
-          asset-name: windows-arm64-llvm-21.1.8.zip
+          install-prefix: ~/llvm-x86_64
+          asset-name: macos-x86_64-llvm-21.1.8.zip
           release-tag: llvm-21.1.8
           release-name: LLVM 21.1.8
           repo-token: ${{ secrets.GITHUB_TOKEN }}

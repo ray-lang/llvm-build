@@ -1,11 +1,11 @@
-name: Build Windows LLVM
+name: Build Linux LLVM
 
 on:
   workflow_dispatch:
 
 jobs:
-  windows-x64:
-    runs-on: windows-2025
+  linux-x86_64:
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -13,27 +13,27 @@ jobs:
         id: cache-llvm
         uses: actions/cache@v4
         with:
-          path: C:\llvm-x64
-          key: windows-llvm21-x64
+          path: /opt/llvm-x86_64
+          key: linux-llvm21-x86_64
       - name: Cache LLVM source
         id: cache-llvm-src
         uses: actions/cache@v4
         with:
           path: llvm-project-21.1.8.src
-          key: windows-llvm-src-21.1.8
+          key: linux-llvm-src-21.1.8
       - name: Build and publish LLVM bundle
         if: steps.cache-llvm.outputs.cache-hit != 'true'
-        uses: ./.github/actions/windows-llvm-build
+        uses: ./.github/actions/linux-llvm-build
         with:
-          msvc-arch: x64
+          arch: x86_64
           llvm-version: 21.1.8
-          install-prefix: C:\llvm-x64
-          asset-name: windows-x64-llvm-21.1.8.zip
+          install-prefix: /opt/llvm-x86_64
+          asset-name: linux-x86_64-llvm-21.1.8.zip
           release-tag: llvm-21.1.8
           release-name: LLVM 21.1.8
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-  windows-arm64:
-    runs-on: windows-11-arm
+  linux-arm64:
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,22 +41,22 @@ jobs:
         id: cache-llvm-arm64
         uses: actions/cache@v4
         with:
-          path: C:\llvm-arm64
-          key: windows-llvm21-arm64
+          path: /opt/llvm-arm64
+          key: linux-llvm21-arm64
       - name: Cache LLVM source
         id: cache-llvm-src-arm64
         uses: actions/cache@v4
         with:
           path: llvm-project-21.1.8.src
-          key: windows-llvm-src-21.1.8
+          key: linux-llvm-src-21.1.8
       - name: Build and publish LLVM bundle
         if: steps.cache-llvm-arm64.outputs.cache-hit != 'true'
-        uses: ./.github/actions/windows-llvm-build
+        uses: ./.github/actions/linux-llvm-build
         with:
-          msvc-arch: arm64
+          arch: arm64
           llvm-version: 21.1.8
-          install-prefix: C:\llvm-arm64
-          asset-name: windows-arm64-llvm-21.1.8.zip
+          install-prefix: /opt/llvm-arm64
+          asset-name: linux-arm64-llvm-21.1.8.zip
           release-tag: llvm-21.1.8
           release-name: LLVM 21.1.8
           repo-token: ${{ secrets.GITHUB_TOKEN }}
