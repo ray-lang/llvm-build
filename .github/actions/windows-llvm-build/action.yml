@@ -2,9 +2,9 @@ name: windows-llvm-build
 description: Build, package, and upload a Windows LLVM bundle.
 inputs:
   llvm-version:
-    description: LLVM release version to build (e.g. 17.0.6)
+    description: LLVM release version to build (e.g. 21.1.8)
     required: false
-    default: "17.0.6"
+    default: "21.1.8"
   msvc-arch:
     description: Architecture passed to MSVC developer command prompt.
     required: false
@@ -14,7 +14,7 @@ inputs:
     required: false
     default: ""
   asset-name:
-    description: Release asset name (e.g. windows-x64-llvm-17.0.6.zip).
+    description: Release asset name (e.g. windows-x64-llvm-21.1.8.zip).
     required: true
   release-tag:
     description: Tag to use or overwrite on the release.
